@@ -22,6 +22,9 @@ wheels/
 env/
 venv/
 ENV/
+virtualenv/
+*venv/
+*env/
 .pytest_cache/
 .coverage
 htmlcov/
@@ -37,4 +40,4 @@ logs/
 screenshots/
 downloads/
 .DS_Store
-Thumbs.db 
+Thumbs.db

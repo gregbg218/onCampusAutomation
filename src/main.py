@@ -1,4 +1,6 @@
 from browser import Browser
+from services.parkingAuthorization import ParkingAuthorizationService
+import time
 
 def main():
     browser = Browser()
@@ -16,8 +18,14 @@ def main():
             if browser.login_to_offstreet("ggeevarg@usc.edu", "baYernForever$"):
                 if browser.navigate_to_events_create():
                     browser.fill_offstreet_form()
+                    time.sleep(2)  # Wait for page transition
                     
-    input("Press Enter to close the browser...")
+                    parking_service = ParkingAuthorizationService(browser.driver)
+                    parking_service.select_location_by_similarity(t2_data)
+                    parking_service.fill_dates_and_times(t2_data)
+                    parking_service.click_continue()
+        
+        input("Press Enter to close the browser...")
     browser.close()
 
 if __name__ == "__main__":

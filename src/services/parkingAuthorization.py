@@ -25,6 +25,14 @@ class ParkingAuthorizationService:
             valid_options = [opt for opt in options if opt.get_attribute("value")]
             
             if valid_options and requested_lot:
+                # Special case for Biggy
+                if "biggy" in requested_lot.lower():
+                    for option in valid_options:
+                        if "P8 - BIGGY STRUCTURE" in option.text.upper():
+                            print(f"  - Found Biggy Structure match: {option.text}")
+                            option.click()
+                            return True
+
                 # Function to count matching characters in sequence
                 def match_score(str1, str2):
                     str1 = str1.lower()

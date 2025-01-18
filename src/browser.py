@@ -17,6 +17,13 @@ class Browser:
         self.t2_data = {}
         self.billing_code = None
 
+    def format_phone(self,phone):
+        digits = ''.join(filter(str.isdigit, phone))
+        if len(digits) == 10:
+            return f"+1 ({digits[:3]}) {digits[3:6]}-{digits[6:]}"
+        return phone
+
+
     def fill_offstreet_form(self):
         try:
             time.sleep(2)
@@ -42,7 +49,8 @@ class Browser:
                         value = self.t2_data.get(json_key, "")
                         print(f"  - Found value from JSON: {value}")
                         if field == "phoneNumber" and value:
-                            value = "+1" + ''.join(filter(str.isdigit, value))
+                            print(f"Raw phone number: {value}")
+                            value = self.format_phone(value)
                     else:
                         value = self.billing_code
                         print(f"  - Using billing code: {value}")
@@ -69,6 +77,8 @@ class Browser:
         except Exception as e:
             print(f"\nError in fill_offstreet_form: {str(e)}")
             return False
+        
+
 
     def navigate(self, url):
         print(f"\nNavigating to: {url}")

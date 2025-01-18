@@ -1,6 +1,8 @@
+
+import time
 from browser import Browser
 from services.parkingAuthorization import ParkingAuthorizationService
-import time
+from services.eventSetting import EventSettingsService
 
 def main():
     browser = Browser()
@@ -24,6 +26,10 @@ def main():
                     parking_service.select_location_by_similarity(t2_data)
                     parking_service.fill_dates_and_times(t2_data)
                     parking_service.click_continue()
+
+                    # Add the new settings service step
+                    settings_service = EventSettingsService(browser.driver)
+                    settings_service.configure_all_settings()
         
         input("Press Enter to close the browser...")
     browser.close()

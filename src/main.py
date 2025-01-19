@@ -3,6 +3,7 @@ from services.parkingAuthorization import ParkingAuthorizationService
 import time
 
 from services.eventSetting import EventSettingsService
+from services.portalSettings import PortalSettingsService
 
 def main():
     browser = Browser()
@@ -20,7 +21,7 @@ def main():
             if browser.login_to_offstreet("ggeevarg@usc.edu", "baYernForever$"):
                 if browser.navigate_to_events_create():
                     browser.fill_offstreet_form()
-                    time.sleep(2)  # Wait for page transition
+                    time.sleep(1)  # Wait for page transition
                     
                     parking_service = ParkingAuthorizationService(browser.driver)
                     parking_service.select_location_by_similarity(t2_data)
@@ -30,6 +31,13 @@ def main():
                     # Pass t2_data to EventSettingsService
                     settings_service = EventSettingsService(browser.driver, t2_data)
                     settings_service.configure_all_settings()
+
+
+                      # Add Portal Settings configuration
+
+                    formatted_data = {"t2_data": t2_data}
+                    portal_settings = PortalSettingsService(browser.driver, formatted_data)
+                    portal_settings.configure_all_portal_settings()
         
         input("Press Enter to close the browser...")
     browser.close()

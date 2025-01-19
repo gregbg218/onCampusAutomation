@@ -14,7 +14,7 @@ class EventSettingsService:
         print(f"\nToggling {switch_id}...")
         switch = self.wait.until(EC.element_to_be_clickable((By.ID, switch_id)))
         switch.click()
-        time.sleep(2)
+        time.sleep(1)
 
     def calculate_days_and_rate(self):
         try:
@@ -32,7 +32,7 @@ class EventSettingsService:
     def configure_code(self):
         try:
             print("\nConfiguring code...")
-            time.sleep(2)
+            
             
             # Click the same code option if needed
             try:
@@ -40,7 +40,7 @@ class EventSettingsService:
                     (By.XPATH, "//div[contains(text(), 'Parkers input the same code')]")
                 ))
                 same_code_option.click()
-                time.sleep(1)
+                
             except:
                 print("Same code option already selected")
 
@@ -50,7 +50,7 @@ class EventSettingsService:
             code_input.clear()
             code_input.send_keys(reservation_uid)
             print(f"Code set to: {reservation_uid}")
-            time.sleep(1)
+          
             
         except Exception as e:
             print(f"Error configuring code: {str(e)}")
@@ -58,7 +58,7 @@ class EventSettingsService:
     def configure_rate(self):
         try:
             print("\nConfiguring rate...")
-            time.sleep(2)
+            time.sleep(1)
             
             # Find and fill rate input by finding input with inputmode="numeric"
             rate_input = self.wait.until(EC.presence_of_element_located(
@@ -69,7 +69,7 @@ class EventSettingsService:
             rate_input.clear()
             rate_input.send_keys(str(rate))
             print(f"Rate set to: ${rate}")
-            time.sleep(1)
+            time.sleep(0.5)
                 
         except Exception as e:
             print(f"Error configuring rate: {str(e)}")
@@ -84,7 +84,7 @@ class EventSettingsService:
             max_parkers_input.clear()
             max_parkers_input.send_keys(cars_requested)
             print(f"Max parkers set to: {cars_requested}")
-            time.sleep(1)
+            time.sleep(0.5)
         except Exception as e:
             print(f"Error configuring max parkers: {str(e)}")
 
@@ -96,13 +96,13 @@ class EventSettingsService:
             ))
             field_name_input.clear()
             field_name_input.send_keys("First Name")
-            time.sleep(1)
+            time.sleep(0.5)
 
             first_required_toggle = self.wait.until(EC.element_to_be_clickable(
                 (By.ID, "additionalInfo.0.isRequired")
             ))
             first_required_toggle.click()
-            time.sleep(1)
+            time.sleep(0.5)
         except Exception as e:
             print(f"Error filling first field: {str(e)}")
 
@@ -113,30 +113,30 @@ class EventSettingsService:
                 (By.XPATH, "//button[text()='Add Field']")
             ))
             add_field_button.click()
-            time.sleep(1)
+            time.sleep(0.5)
 
             field_inputs = self.driver.find_elements(By.CSS_SELECTOR, "input[placeholder='e.g. Driver Name']")
             if field_inputs:
                 last_input = field_inputs[-1]
                 last_input.clear()
                 last_input.send_keys("Last Name")
-                time.sleep(1)
+                time.sleep(0.5)
 
                 second_required_toggle = self.wait.until(EC.element_to_be_clickable(
                     (By.ID, "additionalInfo.1.isRequired")
                 ))
                 second_required_toggle.click()
-                time.sleep(1)
+                time.sleep(0.5)
         except Exception as e:
             print(f"Error adding Last Name field: {str(e)}")
 
     def configure_additional_info(self):
         print("\nConfiguring additional info settings...")
-        time.sleep(1)
+        time.sleep(0.5)
         self.fill_first_field()
-        time.sleep(1)
+        time.sleep(0.5)
         self.add_last_name_field()
-        time.sleep(1)
+        time.sleep(0.5)
 
     def click_continue(self):
             print("\nLocating continue button...")
@@ -158,7 +158,7 @@ class EventSettingsService:
             for setting_id, setting_name in settings.items():
                 print(f"\nEnabling {setting_name}...")
                 self.toggle_switch(setting_id)
-                time.sleep(2)
+                time.sleep(1)
                 
                 if setting_id == "hasMaxParkers":
                     self.configure_max_parkers()

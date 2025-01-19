@@ -4,11 +4,33 @@ import time
 
 from services.eventSetting import EventSettingsService
 from services.portalSettings import PortalSettingsService
+import os
+import sys
+
+import time
+
+def get_resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
+
+import tkinter as tk
+from tkinter import simpledialog
 
 def main():
     browser = Browser()
     
-    browser.navigate("https://usc.t2flex.com/PowerPark/reservation/view.aspx?id=392468&addtoqueue=1")
+    root = tk.Tk()
+    root.withdraw()
+    
+    reservation_id = simpledialog.askstring("Input", "Enter the reservation ID:")
+    url = f"https://usc.t2flex.com/PowerPark/reservation/view.aspx?id={reservation_id}&addtoqueue=1"
+    browser.navigate(url)
     if browser.login("GregoryG", "Tommy123"):
         t2_data = browser.extract_t2_data()
         billing_code = browser.get_billing_code()

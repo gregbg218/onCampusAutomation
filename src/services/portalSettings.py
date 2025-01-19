@@ -35,14 +35,26 @@ class PortalSettingsService:
             upload_button.click()
             time.sleep(1)  # Wait for upload dialog
             
-            # Get the absolute path to the image
+            # Get the absolute path to the image using resource helper
             import os
-            current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            image_path = os.path.join(current_dir, 'assets', 'transport.png')
+            import sys
+
+            def get_resource_path(relative_path):
+                try:
+                    # PyInstaller creates a temp folder and stores path in _MEIPASS
+                    base_path = sys._MEIPASS
+                except Exception:
+                    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                
+                return os.path.join(base_path, relative_path)
+                
+            image_path = get_resource_path("assets/transport.png")
+            print(f"Using image path: {image_path}")
             
             file_input = self.driver.find_element(By.CSS_SELECTOR, "input[type='file']")
             file_input.send_keys(image_path)
             time.sleep(7)
+            
             print("Waiting for Save button...")
             save_button = self.wait.until(
                 EC.element_to_be_clickable((By.XPATH, "//button[text()='Save']"))

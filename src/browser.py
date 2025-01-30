@@ -7,6 +7,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import json
 import time
+import tkinter as tk
+from tkinter import messagebox
+import sys
 
 class Browser:
     def __init__(self):
@@ -114,6 +117,8 @@ class Browser:
             print(f"Error getting R number: {str(e)}")
             return None
 
+
+
     def click_requisition_link(self):
         try:
             print("\nLocating requisition link...")
@@ -127,7 +132,12 @@ class Browser:
             return True
         except Exception as e:
             print(f"Error with requisition link: {str(e)}")
-            return False
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showwarning("Error", "ISDN not found use 3rd party search")
+            root.destroy()
+            self.driver.quit()
+            sys.exit()
 
     def get_gl_account(self):
         try:
@@ -145,14 +155,34 @@ class Browser:
         r_number = self.get_r_number()
         if not r_number:
             return None
-            
+                
         if not self.click_requisition_link():
             return None
-            
+
+        try:
+            exp_date_element = self.wait.until(EC.presence_of_element_located((By.ID, "ctl00_pageContent_MySettings_custom_ThirdParty_REQ_EXP_DATE_T2Label_Label")))
+            exp_date_str = exp_date_element.text.strip()
+            exp_date = time.strptime(exp_date_str, "%m/%d/%Y")
+            today = time.localtime()
+                
+            if time.mktime(exp_date) < time.mktime(today):
+                print("Requisition has expired")
+                self.driver.quit()
+                return None
+            print("Requisition has not expired")
+        except Exception as e:
+            print(f"Error checking expiration date: {str(e)}")
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showwarning("Error", "ISDN not found use 3rd party search")
+            root.destroy()
+            self.driver.quit()
+            sys.exit()
+                
         gl_account = self.get_gl_account()
         if not gl_account:
             return None
-            
+                
         self.billing_code = f"{r_number} & {gl_account}"
         print(f"  - Final billing code: {self.billing_code}")
         return self.billing_code

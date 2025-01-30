@@ -4,6 +4,8 @@ import time
 
 from services.eventSetting import EventSettingsService
 from services.portalSettings import PortalSettingsService
+from services.emailTemplateService import EmailTemplateService
+
 import os
 import sys
 
@@ -60,6 +62,8 @@ def main():
                     formatted_data = {"t2_data": t2_data}
                     portal_settings = PortalSettingsService(browser.driver, formatted_data)
                     portal_settings.configure_all_portal_settings()
+                    email_service = EmailTemplateService(browser.driver)
+                    email_service.open_email_in_new_tab({"t2_data": t2_data})
         
         input("Press Enter to close the browser...")
     browser.close()

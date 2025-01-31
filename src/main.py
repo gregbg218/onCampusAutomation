@@ -64,6 +64,7 @@ def main():
                     portal_settings.configure_all_portal_settings()
                     email_service = EmailTemplateService(browser.driver)
                     email_service.open_email_in_new_tab({"t2_data": t2_data})
+                    email_service.handle_denial_process({"t2_data": t2_data})
         
         input("Press Enter to close the browser...")
     browser.close()

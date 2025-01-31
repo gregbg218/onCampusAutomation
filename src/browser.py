@@ -10,6 +10,7 @@ import time
 import tkinter as tk
 from tkinter import messagebox
 import sys
+from tkinter import simpledialog
 
 class Browser:
     def __init__(self):
@@ -172,12 +173,32 @@ class Browser:
             print("Requisition has not expired")
         except Exception as e:
             print(f"Error checking expiration date: {str(e)}")
+            # Create a new dialog for GL Account input
             root = tk.Tk()
             root.withdraw()
+            
+            # Show the ISDN not found warning
             messagebox.showwarning("Error", "ISDN not found use 3rd party search")
-            root.destroy()
-            self.driver.quit()
-            sys.exit()
+            
+            # Ask for GL Account
+            gl_account = simpledialog.askstring("Input", "Enter GL Account Number:")
+            
+            if gl_account:
+                # Open new tab with the same URL
+                current_url = self.driver.current_url
+                self.driver.execute_script("window.open('');")
+                self.driver.switch_to.window(self.driver.window_handles[-1])
+                self.driver.get(current_url)
+                
+                # Set the GL account
+                self.billing_code = f"{r_number} & {gl_account}"
+                print(f"  - Final billing code (manually entered): {self.billing_code}")
+                root.destroy()
+                return self.billing_code
+            else:
+                root.destroy()
+                self.driver.quit()
+                sys.exit()
                 
         gl_account = self.get_gl_account()
         if not gl_account:

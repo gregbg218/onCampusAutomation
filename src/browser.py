@@ -11,27 +11,32 @@ import tkinter as tk
 from tkinter import messagebox
 import sys
 from tkinter import simpledialog
+import logging
+from datetime import datetime
+
+logger = logging.getLogger('Browser')
 
 class Browser:
     def __init__(self):
+        logger.info("Initializing Browser")
         options = Options()
         options.add_argument("--start-maximized")
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         self.wait = WebDriverWait(self.driver, 10)
         self.t2_data = {}
         self.billing_code = None
+        logger.info("Browser initialized successfully")
 
-    def format_phone(self,phone):
+    def format_phone(self, phone):
         digits = ''.join(filter(str.isdigit, phone))
         if len(digits) == 10:
             return f"+1 ({digits[:3]}) {digits[3:6]}-{digits[6:]}"
         return phone
 
-
     def fill_offstreet_form(self):
         try:
             time.sleep(2)
-            print("\nStarting form fill process...")
+            logger.info("Starting Offstreet form fill process")
             
             form_mapping = {
                 "event": ("Event Name", "#event"),
@@ -45,52 +50,45 @@ class Browser:
             
             for field, (json_key, selector) in form_mapping.items():
                 try:
-                    print(f"\nFilling {field}:")
+                    logger.debug(f"Filling field: {field}")
                     element = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
                     element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector)))
                     
                     if json_key:
                         value = self.t2_data.get(json_key, "")
-                        print(f"  - Found value from JSON: {value}")
                         if field == "phoneNumber" and value:
-                            print(f"Raw phone number: {value}")
                             value = self.format_phone(value)
                     else:
                         value = self.billing_code
-                        print(f"  - Using billing code: {value}")
                         
                     if value:
-                        print(f"  - Clearing field")
                         element.clear()
-                        print(f"  - Setting value: {value}")
                         element.send_keys(value)
                         time.sleep(0.5)
+                        logger.debug(f"Field {field} filled with value: {value}")
                     else:
-                        print(f"  - No value found for {field}")
+                        logger.warning(f"No value found for field: {field}")
                         
                 except Exception as field_error:
-                    print(f"  - Error filling field {field}: {str(field_error)}")
+                    logger.error(f"Error filling field {field}: {str(field_error)}")
             
             time.sleep(1)
-            print("\nLocating continue button...")
             continue_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit']")))
-            print("Clicking continue button...")
             continue_button.click()
+            logger.info("Form submitted successfully")
             
             return True
         except Exception as e:
-            print(f"\nError in fill_offstreet_form: {str(e)}")
+            logger.error(f"Error in fill_offstreet_form: {str(e)}")
             return False
         
-
-
     def navigate(self, url):
-        print(f"\nNavigating to: {url}")
+        logger.info(f"Navigating to: {url}")
         self.driver.get(url)
 
     def extract_t2_data(self):
         try:
-            print("\nExtracting T2 data...")
+            logger.info("Extracting T2 data")
             rows = self.wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "T2FormRow")))
             for row in rows:
                 label_elem = row.find_element(By.CLASS_NAME, "T2FormLabelReadOnly") if row.find_elements(By.CLASS_NAME, "T2FormLabelReadOnly") else row.find_element(By.CLASS_NAME, "T2FormLabelRequired")
@@ -99,40 +97,37 @@ class Browser:
                 label = label_elem.find_element(By.TAG_NAME, "span").text
                 value = value_cell.find_element(By.TAG_NAME, "span").text if value_cell.find_elements(By.TAG_NAME, "span") else value_cell.find_element(By.TAG_NAME, "a").text
                 
-                print(f"  - Found field: {label} = {value}")
+                logger.debug(f"Extracted field: {label} = {value}")
                 self.t2_data[label] = value
             
+            logger.info("T2 data extraction completed")
             return self.t2_data
         except Exception as e:
-            print(f"Error extracting T2 data: {str(e)}")
+            logger.error(f"Error extracting T2 data: {str(e)}")
             return None
 
     def get_r_number(self):
         try:
-            print("\nGetting R number...")
+            logger.info("Getting R number")
             r_number_element = self.wait.until(EC.presence_of_element_located((By.ID, "MySettings_custom_Reservation_REQ_NUMBER_T2Label_Label")))
             result = r_number_element.text.strip()
-            print(f"  - Found R number: {result}")
+            logger.info(f"R number found: {result}")
             return result
         except Exception as e:
-            print(f"Error getting R number: {str(e)}")
+            logger.error(f"Error getting R number: {str(e)}")
             return None
-
-
 
     def click_requisition_link(self):
         try:
-            print("\nLocating requisition link...")
+            logger.info("Attempting to click requisition link")
             link = self.wait.until(EC.element_to_be_clickable((By.ID, "MySettings_ResponsibleThirdPartyLink_T2FormLinkButton")))
-            print(f"Found link with text: {link.text}")
             link.click()
-            
             self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
             time.sleep(3)
-            
+            logger.info("Requisition link clicked successfully")
             return True
         except Exception as e:
-            print(f"Error with requisition link: {str(e)}")
+            logger.error(f"Error with requisition link: {str(e)}")
             root = tk.Tk()
             root.withdraw()
             messagebox.showwarning("Error", "ISDN not found use 3rd party search")
@@ -142,24 +137,23 @@ class Browser:
 
     def get_gl_account(self):
         try:
-            print("\nGetting GL Account...")
+            logger.info("Getting GL Account")
             gl_account_element = self.wait.until(EC.presence_of_element_located((By.ID, "ctl00_pageContent_MySettings_custom_ThirdParty_ACCT_NUMBER_T2Label_Label")))
             result = gl_account_element.text.strip()
-            print(f"  - Found GL Account: {result}")
+            logger.info(f"GL Account found: {result}")
             return result
         except Exception as e:
-            print(f"Error getting GL Account: {str(e)}")
+            logger.error(f"Error getting GL Account: {str(e)}")
             return None
 
     def get_billing_code(self):
-        print("\nGetting billing code...")
+        logger.info("Starting billing code retrieval process")
         r_number = self.get_r_number()
         if not r_number:
             return None
                 
         if not self.click_requisition_link():
             return None
-
         try:
             exp_date_element = self.wait.until(EC.presence_of_element_located((By.ID, "ctl00_pageContent_MySettings_custom_ThirdParty_REQ_EXP_DATE_T2Label_Label")))
             exp_date_str = exp_date_element.text.strip()
@@ -167,32 +161,24 @@ class Browser:
             today = time.localtime()
                 
             if time.mktime(exp_date) < time.mktime(today):
-                print("Requisition has expired")
+                logger.error("Requisition has expired")
                 self.driver.quit()
                 return None
-            print("Requisition has not expired")
+            logger.info("Requisition expiration date verified")
         except Exception as e:
-            print(f"Error checking expiration date: {str(e)}")
-            # Create a new dialog for GL Account input
+            logger.error(f"Error checking expiration date: {str(e)}")
             root = tk.Tk()
             root.withdraw()
-            
-            # Show the ISDN not found warning
             messagebox.showwarning("Error", "ISDN not found use 3rd party search")
-            
-            # Ask for GL Account
             gl_account = simpledialog.askstring("Input", "Enter GL Account Number:")
             
             if gl_account:
-                # Open new tab with the same URL
                 current_url = self.driver.current_url
                 self.driver.execute_script("window.open('');")
                 self.driver.switch_to.window(self.driver.window_handles[-1])
                 self.driver.get(current_url)
-                
-                # Set the GL account
                 self.billing_code = f"{r_number} & {gl_account}"
-                print(f"  - Final billing code (manually entered): {self.billing_code}")
+                logger.info(f"Billing code set manually: {self.billing_code}")
                 root.destroy()
                 return self.billing_code
             else:
@@ -205,12 +191,12 @@ class Browser:
             return None
                 
         self.billing_code = f"{r_number} & {gl_account}"
-        print(f"  - Final billing code: {self.billing_code}")
+        logger.info(f"Final billing code generated: {self.billing_code}")
         return self.billing_code
 
     def login(self, username, password):
         try:
-            print("\nLogging into T2...")
+            logger.info("Attempting T2 login")
             username_field = self.wait.until(EC.presence_of_element_located((By.ID, "ctl00_pageContent_UserID_T2FormTextBox_TextBox")))
             password_field = self.wait.until(EC.presence_of_element_located((By.ID, "ctl00_pageContent_Password_T2FormTextBox_TextBox")))
             
@@ -221,15 +207,15 @@ class Browser:
             
             login_button = self.wait.until(EC.element_to_be_clickable((By.ID, "ctl00_pageContent_LoginButton")))
             login_button.click()
-            print("Login successful")
+            logger.info("T2 login successful")
             return True
         except Exception as e:
-            print(f"Error during login: {str(e)}")
+            logger.error(f"T2 login failed: {str(e)}")
             return False
 
     def login_to_offstreet(self, email, password):
         try:
-            print("\nLogging into Offstreet...")
+            logger.info("Attempting Offstreet login")
             email_field = self.wait.until(EC.presence_of_element_located((By.ID, "email")))
             password_field = self.wait.until(EC.presence_of_element_located((By.ID, "password")))
             
@@ -241,17 +227,16 @@ class Browser:
             login_button = self.wait.until(EC.element_to_be_clickable((By.ID, "login")))
             login_button.click()
             
-            print("Waiting for dashboard...")
             self.wait.until(EC.url_contains("dashboard.offstreet.io/dashboard"))
-            print("Login successful")
+            logger.info("Offstreet login successful")
             return True
         except Exception as e:
-            print(f"Error during Offstreet login: {str(e)}")
+            logger.error(f"Offstreet login failed: {str(e)}")
             return False
 
     def navigate_to_events_create(self):
         try:
-            print("\nNavigating to events create page...")
+            logger.info("Navigating to events create page")
             self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
             time.sleep(3)
             
@@ -260,11 +245,10 @@ class Browser:
             time.sleep(2)
             self.wait.until(EC.url_contains("/events/create"))
             self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "form")))
-            print("Successfully reached events create page")
-            
+            logger.info("Successfully reached events create page")
             return True
         except Exception as e:
-            print(f"Error navigating to events create: {str(e)}")
+            logger.error(f"Failed to navigate to events create: {str(e)}")
             return False
 
     def get_all_data(self):
@@ -276,16 +260,16 @@ class Browser:
     def save_data_to_file(self, filename="t2_data.json"):
         data = self.get_all_data()
         try:
-            print(f"\nSaving data to {filename}...")
+            logger.info(f"Saving data to {filename}")
             with open(filename, 'w') as f:
                 json.dump(data, f, indent=2)
-            print(f"Data successfully saved to {filename}")
-            print(f"Saved data: {json.dumps(data, indent=2)}")
+            logger.info(f"Data successfully saved to {filename}")
+            logger.debug(f"Saved data: {json.dumps(data, indent=2)}")
             return True
         except Exception as e:
-            print(f"Error saving data to file: {str(e)}")
+            logger.error(f"Failed to save data to file: {str(e)}")
             return False
 
     def close(self):
-        print("\nClosing browser...")
+        logger.info("Closing browser")
         self.driver.quit()

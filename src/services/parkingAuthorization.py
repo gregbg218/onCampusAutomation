@@ -4,28 +4,33 @@ from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime, timedelta
 import random
 import time
+import logging
+
+logger = logging.getLogger('ParkingAuth')
 
 class ParkingAuthorizationService:
     def __init__(self, driver):
+        logger.info("Initializing ParkingAuthorizationService")
         self.driver = driver
         self.wait = WebDriverWait(self.driver, 10)
 
     def log_all_options(self, location_element):
-        print("\nLogging all available parking locations...")
+        logger.info("Retrieving available parking locations")
         options = location_element.find_elements(By.TAG_NAME, "option")
         valid_options = [opt for opt in options if opt.get_attribute("value")]
-        print(f"\nTotal available parking locations: {len(valid_options)}\n")
+        logger.info(f"Found {len(valid_options)} available parking locations")
+        
         for option in valid_options:
             value = option.get_attribute("value")
             name = option.get_attribute("data-name")
             country = option.get_attribute("data-country")
-            print(f"ID: {value:5} | Location: {name:40} | Country: {country}")
+            logger.debug(f"Location option - ID: {value:5} | Name: {name:40} | Country: {country}")
         return valid_options
 
     def select_location_by_similarity(self, t2_data):
-        print("\nSelecting location by similarity...")
+        logger.info("Starting location selection by similarity")
         requested_lot = t2_data.get("Requested Lot", "")
-        print(f"[LOCATION] Requested parking lot: {requested_lot}")
+        logger.info(f"Requested parking lot: {requested_lot}")
         
         location_selector = "select[name='locations.0.id']"
         location_element = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, location_selector)))
@@ -37,7 +42,7 @@ class ParkingAuthorizationService:
             if "biggy" in requested_lot.lower():
                 for option in valid_options:
                     if "P8 - BIGGY STRUCTURE" in option.text.upper():
-                        print(f"[LOCATION] Direct match found for Biggy Structure: {option.text}")
+                        logger.info(f"Direct match found for Biggy Structure: {option.text}")
                         option.click()
                         return True
 
@@ -56,24 +61,24 @@ class ParkingAuthorizationService:
                 option_text = option.text.strip()
                 score = match_score(option_text, requested_lot)
                 matches.append((option, score))
-                print(f"[MATCH] Location: {option_text:30} | Score: {score:2}")
+                logger.debug(f"Match score - Location: {option_text:30} | Score: {score:2}")
             
             matches.sort(key=lambda x: x[1], reverse=True)
-            print("\n[MATCH] Top 3 matching locations:")
+            logger.info("Top 3 matching locations:")
             for i, (option, score) in enumerate(matches[:3], 1):
-                print(f"[MATCH] {i}. {option.text:30} | Score: {score:2}")
+                logger.info(f"{i}. {option.text:30} | Score: {score:2}")
             
             if matches:
                 best_match = matches[0][0]
-                print(f"\n[LOCATION] Selected best match: {best_match.text} with score: {matches[0][1]}")
+                logger.info(f"Selected best match: {best_match.text} with score: {matches[0][1]}")
                 best_match.click()
                 return True
             
-        print("[LOCATION] No suitable match found")
+        logger.warning("No suitable location match found")
         return False
 
     def select_random_location(self):
-        print("\nSelecting random location...")
+        logger.info("Selecting random location")
         location_selector = "#locations\\.0\\.id"
         location_element = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, location_selector)))
         location_element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, location_selector)))
@@ -82,15 +87,15 @@ class ParkingAuthorizationService:
         
         if valid_options:
             random_option = random.choice(valid_options)
-            print(f"[LOCATION] Randomly selected: {random_option.text}")
+            logger.info(f"Randomly selected location: {random_option.text}")
             random_option.click()
             return True
             
-        print("[LOCATION] No valid options found")
+        logger.warning("No valid location options found")
         return False
 
     def fill_dates_and_times(self, t2_data):
-        print("\nFilling dates and times...")
+        logger.info("Starting date and time fill process")
         try:
             start_date = t2_data["Begin Date"]
             end_date = t2_data["End Date"]
@@ -98,8 +103,7 @@ class ParkingAuthorizationService:
             start_month, start_day, start_year = start_date.split('/')
             end_month, end_day, end_year = end_date.split('/')
             
-            print(f"[DATES] Start Date: {start_month}/{start_day}/{start_year}")
-            print(f"[DATES] End Date: {end_month}/{end_day}/{end_year}")
+            logger.info(f"Processing dates - Start: {start_month}/{start_day}/{start_year}, End: {end_month}/{end_day}/{end_year}")
 
             self.driver.find_element(By.CSS_SELECTOR, "div[data-segment-type='month'][aria-label='month, Start Date']").send_keys(start_month)
             time.sleep(0.5)
@@ -107,7 +111,7 @@ class ParkingAuthorizationService:
             time.sleep(0.5)
             self.driver.find_element(By.CSS_SELECTOR, "div[data-segment-type='year'][aria-label='year, Start Date']").send_keys(start_year)
             time.sleep(0.5)
-            print("[DATES] Start date fields filled")
+            logger.debug("Start date fields filled")
 
             self.driver.find_element(By.CSS_SELECTOR, "div[data-segment-type='month'][aria-label='month, Expiry Date']").send_keys(end_month)
             time.sleep(0.5)
@@ -115,9 +119,9 @@ class ParkingAuthorizationService:
             time.sleep(0.5)
             self.driver.find_element(By.CSS_SELECTOR, "div[data-segment-type='year'][aria-label='year, Expiry Date']").send_keys(end_year)
             time.sleep(0.5)
-            print("[DATES] End date fields filled")
+            logger.debug("End date fields filled")
 
-            print("[TIME] Setting start time to 6:00 AM")
+            logger.info("Setting start time to 6:00 AM")
             start_time_container = self.driver.find_element(By.ID, "startTime")
             hour = start_time_container.find_element(By.CSS_SELECTOR, "div[data-segment-type='hour']")
             self.driver.execute_script("arguments[0].click();", hour)
@@ -133,9 +137,9 @@ class ParkingAuthorizationService:
             self.driver.execute_script("arguments[0].click();", day_period)
             day_period.send_keys("AM")
             time.sleep(0.5)
-            print("[TIME] Start time set successfully")
+            logger.debug("Start time set successfully")
 
-            print("[TIME] Setting end time to 11:59 PM")
+            logger.info("Setting end time to 11:59 PM")
             end_time_container = self.driver.find_element(By.ID, "endTime")
             hour = end_time_container.find_element(By.CSS_SELECTOR, "div[data-segment-type='hour']")
             self.driver.execute_script("arguments[0].click();", hour)
@@ -151,32 +155,31 @@ class ParkingAuthorizationService:
             self.driver.execute_script("arguments[0].click();", day_period)
             day_period.send_keys("PM")
             time.sleep(0.5)
-            print("[TIME] End time set successfully")
+            logger.debug("End time set successfully")
 
             return True
 
         except Exception as e:
-            print(f"[ERROR] Failed to fill dates and times: {str(e)}")
+            logger.error(f"Failed to fill dates and times: {str(e)}")
             return False
 
     def click_continue(self):
         try:
-            print("\n[NAVIGATION] Locating continue button...")
+            logger.info("Attempting to click continue button")
             continue_button = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit']")))
-            print("[NAVIGATION] Found continue button, attempting to click...")
             continue_button.click()
-            print("[NAVIGATION] Continue button clicked successfully")
+            logger.info("Continue button clicked successfully")
             return True
         except Exception as e:
-            print(f"[ERROR] Failed to click continue button: {str(e)}")
+            logger.error(f"Failed to click continue button: {str(e)}")
             return False
 
     def fill_parking_authorization_form(self, t2_data):
-        print("\n[FORM] Starting parking authorization form fill...")
+        logger.info("Starting parking authorization form fill process")
         success = (
             self.select_location_by_similarity(t2_data) and
             self.fill_dates_and_times(t2_data) and
             self.click_continue()
         )
-        print(f"[FORM] Form completion {'successful' if success else 'failed'}")
+        logger.info(f"Form completion {'successful' if success else 'failed'}")
         return success

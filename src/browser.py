@@ -82,6 +82,52 @@ class Browser:
             logger.error(f"Error in fill_offstreet_form: {str(e)}")
             return False
         
+    def handle_isd_search_failure(self, r_number):
+        try:
+            logger.info(f"Handling ISD search failure for R#: {r_number}")
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showwarning("Error", "ISDN not found use 3rd party search")
+            
+            search_url = "https://usc.t2flex.com/PowerPark/thirdparty/search.aspx"
+            
+            logger.info("Opening third party search in new tab")
+            self.driver.execute_script("window.open('');")
+            self.driver.switch_to.window(self.driver.window_handles[-1])
+            self.driver.get(search_url)
+            
+            logger.info("Entering R# in search field")
+            search_field = self.wait.until(
+                EC.presence_of_element_located((By.ID, "ThirdPartyNameText_T2FormTextBox_TextBox"))
+            )
+            search_field.clear()
+            search_field.send_keys(r_number)
+            
+            logger.info("Clicking search button")
+            search_button = self.wait.until(
+                EC.element_to_be_clickable((By.ID, "SearchButton"))
+            )
+            search_button.click()
+            
+            gl_account = simpledialog.askstring("Input", "Enter GL Account Number:")
+            
+            if gl_account:
+                self.billing_code = f"{r_number} & {gl_account}"
+                logger.info(f"Billing code set manually: {self.billing_code}")
+                root.destroy()
+                return self.billing_code
+            else:
+                logger.error("No GL Account provided")
+                root.destroy()
+                self.driver.quit()
+                sys.exit()
+                
+        except Exception as e:
+            logger.error(f"Error in ISD search handling: {str(e)}")
+            root.destroy()
+            self.driver.quit()
+            sys.exit()
+        
     def navigate(self, url):
         logger.info(f"Navigating to: {url}")
         self.driver.get(url)
@@ -151,7 +197,7 @@ class Browser:
         r_number = self.get_r_number()
         if not r_number:
             return None
-                
+                    
         if not self.click_requisition_link():
             return None
         try:
@@ -159,37 +205,20 @@ class Browser:
             exp_date_str = exp_date_element.text.strip()
             exp_date = time.strptime(exp_date_str, "%m/%d/%Y")
             today = time.localtime()
-                
+                    
             if time.mktime(exp_date) < time.mktime(today):
                 logger.error("Requisition has expired")
-                self.driver.quit()
-                return None
+                return self.handle_isd_search_failure(r_number)
+                
             logger.info("Requisition expiration date verified")
         except Exception as e:
             logger.error(f"Error checking expiration date: {str(e)}")
-            root = tk.Tk()
-            root.withdraw()
-            messagebox.showwarning("Error", "ISDN not found use 3rd party search")
-            gl_account = simpledialog.askstring("Input", "Enter GL Account Number:")
-            
-            if gl_account:
-                current_url = self.driver.current_url
-                self.driver.execute_script("window.open('');")
-                self.driver.switch_to.window(self.driver.window_handles[-1])
-                self.driver.get(current_url)
-                self.billing_code = f"{r_number} & {gl_account}"
-                logger.info(f"Billing code set manually: {self.billing_code}")
-                root.destroy()
-                return self.billing_code
-            else:
-                root.destroy()
-                self.driver.quit()
-                sys.exit()
-                
+            return self.handle_isd_search_failure(r_number)
+                    
         gl_account = self.get_gl_account()
         if not gl_account:
-            return None
-                
+            return self.handle_isd_search_failure(r_number)
+                    
         self.billing_code = f"{r_number} & {gl_account}"
         logger.info(f"Final billing code generated: {self.billing_code}")
         return self.billing_code

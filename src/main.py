@@ -54,7 +54,7 @@ def get_credentials():
         logger.error("T2 username input cancelled")
         sys.exit("Username required")
     
-    if t2_username.lower() == "ajax":
+    if t2_username.lower() == "plato":
         logger.info("Using default credentials")
         cred_manager.save_credentials(default_creds)
         return default_creds

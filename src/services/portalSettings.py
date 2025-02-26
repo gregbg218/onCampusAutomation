@@ -5,6 +5,7 @@ import time
 import logging
 import os
 import sys
+from selenium import webdriver
 
 logger = logging.getLogger('PortalSettings')
 

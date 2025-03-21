@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['src\\main.py'],
-    pathex=['src'],
+    ['c:\\Users\\greg0\\Documents\\workspace\\onCampusAutomation\\src\\main.py'],
+    pathex=['c:\\Users\\greg0\\Documents\\workspace\\onCampusAutomation\\src'],
     binaries=[],
-    datas=[('src/assets', 'assets'), ('src/services', 'services'), ('t2_data.json', '.')],
+    datas=[('c:\\Users\\greg0\\Documents\\workspace\\onCampusAutomation\\src\\assets', 'assets'), ('c:\\Users\\greg0\\Documents\\workspace\\onCampusAutomation\\src\\services', 'services'), ('c:\\Users\\greg0\\Documents\\workspace\\onCampusAutomation\\t2_data.json', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

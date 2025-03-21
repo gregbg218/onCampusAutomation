@@ -10,19 +10,12 @@ import sys
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 from services.credential_manager import CredentialManager
-import logging
+from services import logger
 from datetime import datetime
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s | %(levelname)s | %(name)s | %(message)s',
-    handlers=[
-        logging.FileHandler(f'parking_automation_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'),
-        logging.StreamHandler()
-    ]
-)
+logger.configure_logging()  
 
-logger = logging.getLogger('ParkingAutomation')
+logger = logger.get_logger('ParkingAutomation')
 
 def get_resource_path(relative_path):
     try:
@@ -30,7 +23,6 @@ def get_resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
-
 def get_credentials(cred_manager=None):
     logger.info("Starting credentials retrieval process")
     if cred_manager is None:

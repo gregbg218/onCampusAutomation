@@ -1,8 +1,8 @@
 from browser import Browser
 from services.secondPageService import SecondPageService
 from services.firstPageService import FirstPageService
-from services.eventSetting import EventSettingsService
-from services.portalSettings import PortalSettingsService
+from src.services.fourthPageService import EventSettingsService
+from src.services.fifthPageService import PortalSettingsService
 from services.emailTemplateService import EmailTemplateService
 import time
 import os
@@ -266,6 +266,15 @@ def main():
                         logger.info(f"Second page processing result: {'Success' if second_page_result else 'Failed'}")
                     except Exception as e:
                         logger.error(f"Error in second page processing: {str(e)}")
+                    
+                    logger.info("Starting third page processing")
+                    try:
+                        from services.thirdPageService import ThirdPageService
+                        third_page_service = ThirdPageService(browser.driver)
+                        third_page_result = third_page_service.process_third_page(t2_data)
+                        logger.info(f"Third page processing result: {'Success' if third_page_result else 'Failed'}")
+                    except Exception as e:
+                        logger.error(f"Error in third page processing: {str(e)}")
                     
                     logger.info("Configuring event settings")
                     try:

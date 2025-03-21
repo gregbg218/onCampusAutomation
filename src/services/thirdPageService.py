@@ -264,6 +264,22 @@ class ThirdPageService:
             logger.error(f"Failed to click continue button: {str(e)}")
             return False
             
+    def click_choose_button(self):
+        logger.info("Attempting to click Choose button")
+        try:
+            choose_button = self.wait.until(
+                EC.element_to_be_clickable((By.XPATH, 
+                "//button[contains(@class, 'bg-primary-600') and contains(., 'Choose')]"))
+            )
+            
+            logger.info("Found Choose button")
+            choose_button.click()
+            logger.info("Successfully clicked Choose button")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to click Choose button: {str(e)}")
+            return False
+
     def process_third_page(self, t2_data):
         logger.info("Starting third page processing")
         
@@ -289,8 +305,16 @@ class ThirdPageService:
         if not self.click_confirm_selection():
             logger.warning("Failed to confirm location selection, continuing anyway")
         
+        # Click the Choose button before continuing
+        if not self.click_choose_button():
+            logger.warning("Failed to click Choose button, attempting to continue anyway")
+        
         # Finally click continue
         success = self.click_continue()
         
         logger.info(f"Third page completion {'successful' if success else 'failed'}")
         return success
+    
+
+
+    

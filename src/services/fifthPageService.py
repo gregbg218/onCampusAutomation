@@ -25,48 +25,60 @@ class PortalSettingsService:
             if not "bg-primary-600" in branding_toggle.get_attribute("class"):
                 branding_toggle.click()
                 logger.info("Branding enabled")
-                self.upload_image()
+                self.select_transport_image()
             else:
                 logger.info("Branding was already enabled")
         except Exception as e:
             logger.error(f"Error enabling branding: {str(e)}")
 
-    def upload_image(self):
+    def select_transport_image(self):
         try:
-            logger.info("Starting transport image upload")
+            logger.info("Starting to select transport.png image")
             
-            upload_button = self.wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//button[contains(.,'Upload')]"))
+            add_previous_button = self.wait.until(
+                EC.element_to_be_clickable((By.XPATH, "//button[text()='Add Previous Files']"))
             )
-            upload_button.click()
+            add_previous_button.click()
+            logger.info("Clicked Add Previous Files button")
+            time.sleep(2)
+            
+            # Find and use the search box
+            search_input = self.wait.until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "input[placeholder='Search...']"))
+            )
+            search_input.clear()
+            search_input.send_keys("transport.png")
+            logger.info("Entered 'transport.png' in search box")
+            time.sleep(2)
+            
+            # Select the first result's checkbox
+            first_result_checkbox = self.wait.until(
+                EC.element_to_be_clickable((By.XPATH, "//tr[contains(@aria-label, 'transport.png')][1]//span[@role='checkbox']"))
+            )
+            first_result_checkbox.click()
+            logger.info("Selected the first transport.png result")
             time.sleep(1)
             
-            def get_resource_path(relative_path):
-                try:
-                    base_path = sys._MEIPASS
-                except Exception:
-                    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                return os.path.join(base_path, relative_path)
-                
-            image_path = get_resource_path("assets/transport.png")
-            logger.debug(f"Using image path: {image_path}")
+            # Click Select button
+            select_button = self.wait.until(
+                EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Select')]"))
+            )
+            select_button.click()
+            logger.info("Clicked the Select button")
+            time.sleep(3)
             
-            file_input = self.driver.find_element(By.CSS_SELECTOR, "input[type='file']")
-            file_input.send_keys(image_path)
-            time.sleep(7)
-            
-            logger.debug("Locating Save button")
+            # Look for Save button and click it
             save_button = self.wait.until(
                 EC.element_to_be_clickable((By.XPATH, "//button[text()='Save']"))
             )
             save_button.click()
             
-            time.sleep(7)
-            logger.info("Image upload completed successfully")
+            time.sleep(5)
+            logger.info("Image selection completed successfully")
             return True
             
         except Exception as e:
-            logger.error(f"Error uploading image: {str(e)}")
+            logger.error(f"Error selecting transport.png image: {str(e)}")
             return False
 
     def add_instructions(self):

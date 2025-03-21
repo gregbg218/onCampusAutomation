@@ -42,7 +42,6 @@ class PortalSettingsService:
             logger.info("Clicked Add Previous Files button")
             time.sleep(2)
             
-            # Find and use the search box
             search_input = self.wait.until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, "input[placeholder='Search...']"))
             )
@@ -51,7 +50,6 @@ class PortalSettingsService:
             logger.info("Entered 'transport.png' in search box")
             time.sleep(2)
             
-            # Select the first result's checkbox
             first_result_checkbox = self.wait.until(
                 EC.element_to_be_clickable((By.XPATH, "//tr[contains(@aria-label, 'transport.png')][1]//span[@role='checkbox']"))
             )
@@ -59,21 +57,13 @@ class PortalSettingsService:
             logger.info("Selected the first transport.png result")
             time.sleep(1)
             
-            # Click Select button
-            select_button = self.wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Select')]"))
+            choose_files_button = self.wait.until(
+                EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'bg-primary-600') and text()='Choose Files']"))
             )
-            select_button.click()
-            logger.info("Clicked the Select button")
+            choose_files_button.click()
+            logger.info("Clicked the Choose Files button")
             time.sleep(3)
             
-            # Look for Save button and click it
-            save_button = self.wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//button[text()='Save']"))
-            )
-            save_button.click()
-            
-            time.sleep(5)
             logger.info("Image selection completed successfully")
             return True
             
@@ -137,33 +127,8 @@ class PortalSettingsService:
             except Exception as alt_e:
                 logger.error(f"Alternative approach failed: {str(alt_e)}")
 
-    def enable_directions(self):
-        try:
-            logger.info("Enabling directions")
-            directions_toggle = self.wait.until(
-                EC.element_to_be_clickable((By.ID, "hasDirections"))
-            )
-            if not "bg-primary-600" in directions_toggle.get_attribute("class"):
-                directions_toggle.click()
-                logger.info("Directions enabled")
-            else:
-                logger.info("Directions were already enabled")
-        except Exception as e:
-            logger.error(f"Error enabling directions: {str(e)}")
+    
 
-    def select_event_link_type(self):
-        try:
-            logger.info("Selecting event link type")
-            event_link_radio = self.wait.until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='linkType'][value='EVENT']"))
-            )
-            if not event_link_radio.is_selected():
-                event_link_radio.click()
-                logger.info("Event link type selected")
-            else:
-                logger.info("Event link type was already selected")
-        except Exception as e:
-            logger.error(f"Error selecting event link type: {str(e)}")
             
     def click_create_event(self):
         try:
@@ -186,9 +151,7 @@ class PortalSettingsService:
 
     def configure_all_portal_settings(self):
         logger.info("Starting portal settings configuration")
-        self.select_event_link_type()
         self.enable_branding()
         self.add_instructions()
-        self.enable_directions()
         logger.info("Portal settings configuration completed")
         self.click_create_event()

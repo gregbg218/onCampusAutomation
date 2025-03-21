@@ -153,38 +153,7 @@ class ThirdPageService:
             logger.error(f"Failed to select location from search results: {str(e)}")
             return False
     
-    def click_confirm_selection(self):
-        logger.info("Clicking confirm button for location selection")
-        try:
-            # Look for a button with text like "Confirm", "Select", "Add", etc.
-            confirm_buttons = self.driver.find_elements(By.XPATH, 
-                "//button[contains(., 'Confirm') or contains(., 'Select') or contains(., 'Add') or contains(., 'Done')]")
-            
-            if confirm_buttons:
-                for button in confirm_buttons:
-                    if button.is_displayed() and button.is_enabled():
-                        button.click()
-                        logger.info("Clicked confirm selection button")
-                        time.sleep(0.5)
-                        return True
-            
-            # If no specific button found, look for primary action buttons
-            primary_buttons = self.driver.find_elements(By.CSS_SELECTOR, 
-                "button.bg-primary-600, button.text-primary-700")
-            
-            if primary_buttons:
-                for button in primary_buttons:
-                    if button.is_displayed() and button.is_enabled():
-                        button.click()
-                        logger.info("Clicked primary action button")
-                        time.sleep(0.5)
-                        return True
-            
-            logger.warning("No confirm selection button found")
-            return False
-        except Exception as e:
-            logger.error(f"Failed to click confirm selection button: {str(e)}")
-            return False
+    
             
     def select_location_by_similarity(self, t2_data):
         logger.info("Starting location selection by similarity")
@@ -302,8 +271,8 @@ class ThirdPageService:
             return self.select_location_by_similarity(t2_data) and self.click_continue()
         
         # Confirm the selection
-        if not self.click_confirm_selection():
-            logger.warning("Failed to confirm location selection, continuing anyway")
+        # if not self.click_confirm_selection():
+        #     logger.warning("Failed to confirm location selection, continuing anyway")
         
         # Click the Choose button before continuing
         if not self.click_choose_button():

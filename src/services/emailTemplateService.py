@@ -118,6 +118,24 @@ class EmailTemplateService:
 
             if not window_found:
                 raise Exception(f"Window not found for reservation {reservation_id}")
+                
+            # Check if the reservation is already denied
+            try:
+                status_elem = self.driver.find_element(By.ID, "MySettings_Reservation_ReservationStatus_T2Label_Label")
+                if status_elem.text == "Denied":
+                    logger.info("Reservation is already denied, no need to process denial")
+                    raise Exception("Reservation is already in 'Denied' status")
+            except Exception as e:
+                logger.warning(f"Could not check reservation status: {str(e)}")
+                
+            # Check if the deny option is disabled
+            try:
+                deny_disabled = len(self.driver.find_elements(By.XPATH, "//tr[@class='PageSideBarItemDisabled']/td[contains(text(), 'Deny Reservation Confirmation')]")) > 0
+                if deny_disabled:
+                    logger.warning("Deny Reservation option is disabled")
+                    raise Exception("Deny Reservation option is disabled")
+            except Exception as e:
+                logger.warning(f"Could not check if deny option is disabled: {str(e)}")
 
             logger.info("Locating and clicking deny link")
             deny_selector = '.PageSideBarItemEnabled a[href*="modifyType=Deny"]'
@@ -196,7 +214,7 @@ class EmailTemplateService:
 
             error_label = tk.Label(
                 error_window, 
-                text=f"Denial process failed for reservation: {reservation_id}\n\nError: {str(e)}", 
+                text="Oops something is wrong with the denial process", 
                 wraplength=350,
                 justify="center"
             )
@@ -213,5 +231,3 @@ class EmailTemplateService:
             error_window.grab_set()
             error_window.wait_window()
             root.destroy()
-            
-            raise e

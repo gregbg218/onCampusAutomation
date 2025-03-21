@@ -59,7 +59,7 @@ class EventSettingsService:
     def configure_rate(self):
         try:
             logger.info("Configuring rate settings")
-            time.sleep(1)
+            # time.sleep(1)
             
             rate_input = self.wait.until(EC.presence_of_element_located(
                 (By.CSS_SELECTOR, "input[inputmode='numeric']")
@@ -69,7 +69,7 @@ class EventSettingsService:
             rate_input.clear()
             rate_input.send_keys(str(rate))
             logger.info(f"Rate configured: ${rate}")
-            time.sleep(0.5)
+            # time.sleep(0.5)
                 
         except Exception as e:
             logger.error(f"Error configuring rate: {str(e)}")
@@ -84,7 +84,7 @@ class EventSettingsService:
             max_parkers_input.clear()
             max_parkers_input.send_keys(cars_requested)
             logger.info(f"Maximum parkers set to: {cars_requested}")
-            time.sleep(0.5)
+            # time.sleep(0.5)
         except Exception as e:
             logger.error(f"Error configuring maximum parkers: {str(e)}")
 
@@ -96,13 +96,13 @@ class EventSettingsService:
             ))
             field_name_input.clear()
             field_name_input.send_keys("First Name")
-            time.sleep(0.5)
+            # time.sleep(0.5)
 
             first_required_toggle = self.wait.until(EC.element_to_be_clickable(
                 (By.ID, "additionalInfo.0.isRequired")
             ))
             first_required_toggle.click()
-            time.sleep(0.5)
+            # time.sleep(0.5)
             logger.debug("First name field configured and set as required")
         except Exception as e:
             logger.error(f"Error configuring first name field: {str(e)}")
@@ -114,31 +114,31 @@ class EventSettingsService:
                 (By.XPATH, "//button[text()='Add Field']")
             ))
             add_field_button.click()
-            time.sleep(0.5)
+            # time.sleep(0.5)
 
             field_inputs = self.driver.find_elements(By.CSS_SELECTOR, "input[placeholder='e.g. Driver Name']")
             if field_inputs:
                 last_input = field_inputs[-1]
                 last_input.clear()
                 last_input.send_keys("Last Name")
-                time.sleep(0.5)
+                # time.sleep(0.5)
 
                 second_required_toggle = self.wait.until(EC.element_to_be_clickable(
                     (By.ID, "additionalInfo.1.isRequired")
                 ))
                 second_required_toggle.click()
-                time.sleep(0.5)
+                # time.sleep(0.5)
                 logger.debug("Last name field configured and set as required")
         except Exception as e:
             logger.error(f"Error adding last name field: {str(e)}")
 
     def configure_additional_info(self):
         logger.info("Configuring additional information fields")
-        time.sleep(0.5)
+        # time.sleep(0.5)
         self.fill_first_field()
-        time.sleep(0.5)
+        # time.sleep(0.5)
         self.add_last_name_field()
-        time.sleep(0.5)
+        # time.sleep(0.5)
 
     def click_continue(self):
         logger.info("Proceeding to next step")
@@ -167,7 +167,7 @@ class EventSettingsService:
             for setting_id, setting_name in settings.items():
                 logger.info(f"Configuring setting: {setting_name}")
                 self.toggle_switch(setting_id)
-                time.sleep(1)
+                # time.sleep(1)
                 
                 if setting_id == "hasMaxParkers":
                     self.configure_max_parkers()

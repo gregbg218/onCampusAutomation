@@ -150,12 +150,19 @@ class EventSettingsService:
         try:
             logger.info("Starting event settings configuration")
             
+            # Check if "Exceed Car Requested Set Value" is "Yes" or "No"
+            exceed_value = self.t2_data.get('Exceed Car Requested Set Value', 'No')
+            logger.info(f"Exceed Car Requested Set Value: {exceed_value}")
+            
             settings = {
-                "hasMaxParkers": "Set Max Number of Parkers",
                 "hasAdditionalInfo": "Collect Additional Information",
                 "hasCode": "Require a Code",
                 "hasRate": "Add Rate"
             }
+            
+            # Only add max parkers setting if exceed_value is "No"
+            if exceed_value == "No":
+                settings["hasMaxParkers"] = "Set Max Number of Parkers"
 
             for setting_id, setting_name in settings.items():
                 logger.info(f"Configuring setting: {setting_name}")

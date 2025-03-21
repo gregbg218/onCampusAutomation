@@ -1,8 +1,8 @@
 from browser import Browser
 from services.secondPageService import SecondPageService
 from services.firstPageService import FirstPageService
-from src.services.fourthPageService import EventSettingsService
-from src.services.fifthPageService import PortalSettingsService
+from services.fourthPageService import EventSettingsService
+from services.fifthPageService import PortalSettingsService
 from services.emailTemplateService import EmailTemplateService
 import time
 import os

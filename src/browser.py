@@ -82,14 +82,25 @@ class Browser:
             logger.info("Extracting T2 data")
             rows = self.wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "T2FormRow")))
             for row in rows:
-                label_elem = row.find_element(By.CLASS_NAME, "T2FormLabelReadOnly") if row.find_elements(By.CLASS_NAME, "T2FormLabelReadOnly") else row.find_element(By.CLASS_NAME, "T2FormLabelRequired")
-                value_cell = row.find_element(By.CLASS_NAME, "T2FormControlCell")
-                
-                label = label_elem.find_element(By.TAG_NAME, "span").text
-                value = value_cell.find_element(By.TAG_NAME, "span").text if value_cell.find_elements(By.TAG_NAME, "span") else value_cell.find_element(By.TAG_NAME, "a").text
-                
-                logger.debug(f"Extracted field: {label} = {value}")
-                self.t2_data[label] = value
+                try:
+                    label_elem = row.find_element(By.CLASS_NAME, "T2FormLabelReadOnly") if row.find_elements(By.CLASS_NAME, "T2FormLabelReadOnly") else row.find_element(By.CLASS_NAME, "T2FormLabelRequired")
+                    value_cell = row.find_element(By.CLASS_NAME, "T2FormControlCell")
+                    
+                    # Get the label text from the span inside the label element
+                    label = label_elem.find_element(By.TAG_NAME, "span").text
+                    
+                    # Get the value text, handling different possible element structures
+                    value = ""
+                    if value_cell.find_elements(By.TAG_NAME, "span"):
+                        value = value_cell.find_element(By.TAG_NAME, "span").text
+                    elif value_cell.find_elements(By.TAG_NAME, "a"):
+                        value = value_cell.find_element(By.TAG_NAME, "a").text
+                    
+                    logger.debug(f"Extracted field: {label} = {value}")
+                    self.t2_data[label] = value
+                except Exception as e:
+                    logger.error(f"Error extracting row data: {str(e)}")
+                    continue
             
             logger.info("T2 data extraction completed")
             return self.t2_data

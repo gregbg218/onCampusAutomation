@@ -164,11 +164,23 @@ class EventSettingsService:
             if exceed_value == "No":
                 settings["hasMaxParkers"] = "Set Max Number of Parkers"
 
+            # Add a sleep before starting toggle phase to ensure page is fully loaded
+            logger.info("Waiting for settings page to fully load before toggling switches")
+            time.sleep(3)
+            
+            # First phase: Toggle all switches
             for setting_id, setting_name in settings.items():
                 logger.info(f"Configuring setting: {setting_name}")
                 self.toggle_switch(setting_id)
-                # time.sleep(1)
+                time.sleep(1)  # Short sleep after each toggle
                 
+            # Add a longer sleep after toggle phase to allow all UI changes to take effect
+            logger.info("Waiting for UI to update after toggling all switches")
+            time.sleep(3)
+            
+            # Second phase: Configure each enabled setting
+            for setting_id, setting_name in settings.items():
+                logger.info(f"Filling fields for: {setting_name}")
                 if setting_id == "hasMaxParkers":
                     self.configure_max_parkers()
                 elif setting_id == "hasAdditionalInfo":

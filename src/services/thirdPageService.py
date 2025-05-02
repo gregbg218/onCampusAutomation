@@ -75,7 +75,9 @@ class ThirdPageService:
     def select_location_from_search_results(self, t2_data):
         logger.info("Selecting location from search results")
         try:
-            requested_lot = t2_data.get("Requested Lot", "")
+            requested_lot_full = t2_data.get("Requested Lot", "")
+            requested_lot = requested_lot_full.split()[0] if requested_lot_full else ""
+
             
             # Find all rows in the search results table
             rows = self.driver.find_elements(By.CSS_SELECTOR, "tbody tr")

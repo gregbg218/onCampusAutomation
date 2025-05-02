@@ -24,6 +24,7 @@ class PortalSettingsService:
             )
             if not "bg-primary-600" in branding_toggle.get_attribute("class"):
                 branding_toggle.click()
+                time.sleep(1)
                 logger.info("Branding enabled")
                 self.select_transport_image()
             else:
@@ -150,6 +151,7 @@ class PortalSettingsService:
             return False
 
     def configure_all_portal_settings(self):
+        time.sleep(1)
         logger.info("Starting portal settings configuration")
         self.enable_branding()
         self.add_instructions()

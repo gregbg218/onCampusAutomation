@@ -166,7 +166,7 @@ class EventSettingsService:
 
             # Add a sleep before starting toggle phase to ensure page is fully loaded
             logger.info("Waiting for settings page to fully load before toggling switches")
-            time.sleep(3)
+            time.sleep(2)
             
             # First phase: Toggle all switches
             for setting_id, setting_name in settings.items():
@@ -176,7 +176,7 @@ class EventSettingsService:
                 
             # Add a longer sleep after toggle phase to allow all UI changes to take effect
             logger.info("Waiting for UI to update after toggling all switches")
-            time.sleep(3)
+            # time.sleep(3)
             
             # Second phase: Configure each enabled setting
             for setting_id, setting_name in settings.items():

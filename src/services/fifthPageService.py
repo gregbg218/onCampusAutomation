@@ -76,57 +76,57 @@ class PortalSettingsService:
         try:
             logger.info("Adding instructions")
             time.sleep(5)
-            
-            self.wait.until(
-                EC.presence_of_element_located((By.TAG_NAME, "form"))
-            )
-            
+
+            self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "form")))
+
+            # Use correct toggle ID: 'hasInstructions'
             instructions_toggle = WebDriverWait(self.driver, 20).until(
-                EC.element_to_be_clickable((By.ID, "hasCustomMessage"))
+                EC.element_to_be_clickable((By.ID, "hasInstructions"))
             )
-            
-            if not "bg-primary-600" in instructions_toggle.get_attribute("class"):
+
+            if "bg-primary-600" not in instructions_toggle.get_attribute("class"):
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", instructions_toggle)
                 time.sleep(1)
                 instructions_toggle.click()
                 time.sleep(3)
-            
-            requested_lot = self.t2_data.get('Requested Lot')
-            if not requested_lot:
-                requested_lot = "Structure"
-                logger.warning("Could not find Requested Lot in t2_data, using default value")
-            
+
+            requested_lot = self.t2_data.get('Requested Lot', 'Structure')
             logger.debug(f"Retrieved lot name: {requested_lot}")
             instructions_text = f"Parking is now digital in the {requested_lot}. Please ensure to register your vehicle upon parking in any unmarked space."
-            
-            instructions_element = WebDriverWait(self.driver, 20).until(
-                EC.presence_of_element_located((By.CLASS_NAME, "ProseMirror"))
+
+            # Wait for at least 2 instruction fields to appear
+            WebDriverWait(self.driver, 20).until(
+                lambda d: len(d.find_elements(By.CLASS_NAME, "ProseMirror")) >= 2
             )
-            
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", instructions_element)
+            instruction_elements = self.driver.find_elements(By.CLASS_NAME, "ProseMirror")[:2]
+
+            for idx, element in enumerate(instruction_elements):
+                try:
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
+                    time.sleep(1)
+                    self.driver.execute_script("arguments[0].click();", element)
+                    time.sleep(0.5)
+                    self.driver.execute_script("arguments[0].innerHTML = '';", element)
+                    self.driver.execute_script(f"arguments[0].innerHTML = `{instructions_text}`;", element)
+                    logger.info(f"Instructions injected into field #{idx + 1}")
+                except Exception as e:
+                    logger.error(f"Failed to inject instructions into field #{idx + 1}: {str(e)}")
+
             time.sleep(2)
-            
-            self.driver.execute_script("arguments[0].click();", instructions_element)
-            time.sleep(1)
-            
-            self.driver.execute_script("arguments[0].innerHTML = '';", instructions_element)
-            self.driver.execute_script(f"arguments[0].innerHTML = '{instructions_text}';", instructions_element)
-            
-            logger.info(f"Instructions added successfully for lot: {requested_lot}")
-            time.sleep(2)
-            
+
         except Exception as e:
             logger.error(f"Error adding instructions: {str(e)}")
             try:
                 logger.info("Attempting alternative approach for instructions")
                 time.sleep(5)
-                instructions_element = self.driver.find_element(By.CLASS_NAME, "ProseMirror")
-                actions = webdriver.ActionChains(self.driver)
-                actions.move_to_element(instructions_element).click().perform()
-                actions.send_keys(instructions_text).perform()
-                logger.info("Instructions added using alternative approach")
+                fallback_elements = self.driver.find_elements(By.CLASS_NAME, "ProseMirror")[:2]
+                for element in fallback_elements:
+                    actions = webdriver.ActionChains(self.driver)
+                    actions.move_to_element(element).click().send_keys(instructions_text).perform()
+                logger.info("Instructions added using fallback ActionChains")
             except Exception as alt_e:
                 logger.error(f"Alternative approach failed: {str(alt_e)}")
+
 
     
 

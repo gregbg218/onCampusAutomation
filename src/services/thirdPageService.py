@@ -46,31 +46,27 @@ class ThirdPageService:
     def search_for_location(self, t2_data):
         logger.info("Searching for location in the search bar")
         try:
-            # Get the requested lot name from t2_data
-            requested_lot = t2_data.get("Requested Lot", "")
+            requested_lot_full = t2_data.get("Requested Lot", "")
+            requested_lot = requested_lot_full.split()[0] if requested_lot_full else ""
             if not requested_lot:
                 logger.warning("No requested lot found in T2 data")
                 return False
-                
+
             logger.info(f"Searching for requested lot: {requested_lot}")
-            
-            # Wait for the search input to be visible and clickable
+
             search_input = self.wait.until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, "input#search[placeholder='Search...']"))
             )
-            
-            # Clear any existing text and enter the requested lot name
             search_input.clear()
             search_input.send_keys(requested_lot)
             logger.info(f"Entered '{requested_lot}' in search bar")
-            
-            # Allow time for search results to appear
+
             time.sleep(1.5)
-            
             return True
         except Exception as e:
             logger.error(f"Failed to search for location: {str(e)}")
             return False
+
     
     def select_location_from_search_results(self, t2_data):
         logger.info("Selecting location from search results")

@@ -236,7 +236,7 @@ class ThirdPageService:
         try:
             choose_button = self.wait.until(
                 EC.element_to_be_clickable((By.XPATH, 
-                "//button[contains(@class, 'bg-primary-600') and contains(., 'Choose')]"))
+                "//button[contains(@class, 'bg-primary') and text()='Choose']"))
             )
             
             logger.info("Found Choose button")

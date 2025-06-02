@@ -59,7 +59,7 @@ class PortalSettingsService:
             time.sleep(1)
             
             choose_files_button = self.wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'bg-primary-600') and text()='Choose Files']"))
+                EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'bg-primary') and text()='Choose Files']"))
             )
             choose_files_button.click()
             logger.info("Clicked the Choose Files button")

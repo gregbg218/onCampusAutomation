@@ -58,14 +58,24 @@ class PortalSettingsService:
             logger.info("Selected the first transport.png result")
             time.sleep(1)
             
-            choose_files_button = self.wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'bg-primary') and text()='Choose Files']"))
+            next_button = self.wait.until(
+            EC.element_to_be_clickable(
+                (By.XPATH, "//button[contains(@class, 'bg-primary') and normalize-space(text())='Next']"))
+                )
+            next_button.click()
+            logger.info("Clicked Next button")
+            time.sleep(1)          # give the follow-up modal a moment to appear
+
+            # 4️⃣  click **Save** in the new window
+            save_button = self.wait.until(
+                EC.element_to_be_clickable((
+                    By.XPATH,
+                    "//button[contains(@class, 'bg-primary') and normalize-space(text())='Save']"
+                ))
             )
-            choose_files_button.click()
-            logger.info("Clicked the Choose Files button")
-            time.sleep(3)
-            
-            logger.info("Image selection completed successfully")
+            save_button.click()
+            logger.info("Clicked Save button")
+            time.sleep(2)
             return True
             
         except Exception as e:

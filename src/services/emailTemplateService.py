@@ -195,34 +195,59 @@ class EmailTemplateService:
         logging.getLogger("EmailTemplate").info("All recipient pills cleared")
 
 
+    from selenium.webdriver.common.keys import Keys
+    # ...
+
     def _fill_subject(
-            self,
-            text: str = "Transportation Parking Reservations"
+        self,
+        text: str = "Transportation Parking Reservations",
     ) -> bool:
-        """Sets the e-mail subject line via JavaScript only (no send_keys)."""
+        """Sets the e-mail subject line and makes sure it sticks."""
         try:
             subj = self.wait.until(
-                EC.presence_of_element_located((By.ID, "subject"))
+                EC.visibility_of_element_located((By.ID, "subject"))
             )
             self.driver.execute_script(
+                "arguments[0].scrollIntoView({block:'center'});", subj
+            )
+
+            # ── normal way ────────────────────────────────────────────────
+            subj.clear()
+            subj.send_keys(text, Keys.TAB)          # <── blur commits value
+        except Exception as exc:
+            logger.warning(f"send_keys failed on Subject – using JS fallback: {exc}")
+
+            subj = self.driver.find_element(By.ID, "subject")
+            self.driver.execute_script(
                 """
-                arguments[0].scrollIntoView({block:'center'});
-                arguments[0].value = arguments[1];
-                arguments[0].dispatchEvent(new Event('input', { bubbles:true }));
+                const el = arguments[0], val = arguments[1];
+
+                /* setNativeValue hacks around React’s setter */
+                const setNativeValue = (input, value) => {
+                const lastValue = input.value;
+                input.value = value;
+                const tracker = input._valueTracker;
+                if (tracker) tracker.setValue(lastValue);
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+                };
+
+                setNativeValue(el, val);
+                el.blur();            // fires 'blur' so Formik commits
                 """,
                 subj,
                 text,
             )
 
-            # verify the value actually stuck
+        # ── verify ───────────────────────────────────────────────────────
+        try:
             self.wait.until(
                 EC.text_to_be_present_in_element_value((By.ID, "subject"), text)
             )
-            logger.info("Subject line set successfully")
+            logger.info("Subject line set & committed")
             return True
-
         except Exception as exc:
-            logger.error(f"Failed to set subject via JS: {exc}")
+            logger.error(f"Failed to confirm subject value: {exc}")
             return False
 
 

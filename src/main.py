@@ -45,10 +45,10 @@ def get_credentials(cred_manager=None):
         logger.error("T2 username input cancelled")
         sys.exit("Username required")
     
-    if t2_username.lower() == "plato":
-        logger.info("Using default credentials")
-        cred_manager.save_credentials(default_creds)
-        return default_creds
+    # if t2_username.lower() == "plato":
+    #     logger.info("Using default credentials")
+    #     cred_manager.save_credentials(default_creds)
+    #     return default_creds
         
     t2_password = simpledialog.askstring("T2 Credentials", "Enter T2 Password:", show="*")
     if not t2_password:

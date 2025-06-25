@@ -38,10 +38,6 @@ def get_credentials(cred_manager=None):
     root.withdraw()
     
     default_creds = {
-        "t2_username": "GregoryG",
-        "t2_password": "Tommy123",
-        "offstreet_email": "ggeevarg@usc.edu",
-        "offstreet_password": "baYernForever$"
     }
     
     t2_username = simpledialog.askstring("T2 Credentials", "Enter T2 Username:")
